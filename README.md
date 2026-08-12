@@ -37,12 +37,19 @@ Airtable is the single source of truth (8 tables, Israeli tax-compliant). Docume
 
 ### Screenshots
 
-<!-- Remove these comment marks after adding your screenshots:
-![Dashboard](assets/dashboard_overview.png)
-![WF5 — Customer Service Agent](assets/wf5_customer_service_agent.png)
-![WF9 — Manager Agent](assets/wf9_manager_agent.png)
-![Telegram Conversation](assets/telegram_customer_bot.png)
--->
+![Manager Agent](assets/scr1.png)
+
+![Document Pipeline](assets/scr2.png)
+
+![Lead Capture](assets/scr3.png)
+
+![Customer Service Agent](assets/scr5.png)
+
+![Embedding Products](assets/scr6.png)
+
+![Embedding Policies](assets/scr7.png)
+
+![Sales Cold Emails](assets/scr8.png)
 
 ### Stack
 
