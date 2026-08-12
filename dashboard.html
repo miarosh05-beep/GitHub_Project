@@ -1,0 +1,515 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>וולט אלקטרוניקה — ERP Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root {
+  --bg: #f1f5f9; --panel: #ffffff; --ink: #0f172a; --dim: #64748b; --faint: #94a3b8;
+  --line: #e2e8f0; --line-light: #f1f5f9; --accent: #3b82f6; --accent-hover: #2563eb;
+  --accent-soft: #eff6ff; --success: #10b981; --success-soft: #ecfdf5;
+  --warning: #f59e0b; --warning-soft: #fffbeb; --danger: #ef4444; --danger-soft: #fef2f2;
+  --purple: #8b5cf6; --purple-soft: #f5f3ff;
+  --radius: 16px; --radius-sm: 10px; --radius-xs: 8px;
+  --shadow: 0 1px 3px rgba(15,23,42,.04), 0 4px 14px rgba(15,23,42,.06);
+  --shadow-lg: 0 8px 30px rgba(15,23,42,.12);
+  --transition: .25s cubic-bezier(.4,0,.2,1);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Rubik', system-ui, sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+/* ===== LOGIN ===== */
+#login-screen {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 20px;
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 50%, #0f172a 100%);
+  position: relative; overflow: hidden;
+}
+#login-screen::before {
+  content: ''; position: absolute; width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,.15) 0%, transparent 70%);
+  top: -200px; left: -200px; animation: pulse 8s ease-in-out infinite;
+}
+#login-screen::after {
+  content: ''; position: absolute; width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(139,92,246,.1) 0%, transparent 70%);
+  bottom: -100px; right: -100px; animation: pulse 6s ease-in-out infinite reverse;
+}
+@keyframes pulse { 0%,100% { transform: scale(1); opacity: .5; } 50% { transform: scale(1.2); opacity: 1; } }
+.login-card {
+  background: rgba(255,255,255,.08); backdrop-filter: blur(20px); border: 1px solid rgba(255,255,255,.15);
+  border-radius: 24px; padding: 40px; width: 100%; max-width: 420px; position: relative; z-index: 1;
+  animation: slideUp .6s cubic-bezier(.16,1,.3,1);
+}
+.login-logo { width: 64px; height: 64px; background: var(--accent); border-radius: 18px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 8px 24px rgba(59,130,246,.3); }
+.login-logo svg { width: 32px; height: 32px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.login-title { text-align: center; color: #fff; font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+.login-sub { text-align: center; color: #93c5fd; font-size: 14px; margin-bottom: 28px; }
+.login-label { display: block; color: #93c5fd; font-size: 12px; margin-bottom: 6px; }
+.login-input { width: 100%; padding: 12px 16px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.15); border-radius: var(--radius-sm); color: #fff; font: inherit; font-size: 14px; direction: ltr; margin-bottom: 16px; transition: var(--transition); }
+.login-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+.login-input::placeholder { color: rgba(147,197,253,.4); }
+.login-btn { width: 100%; padding: 14px; background: var(--accent); border: none; border-radius: var(--radius-sm); color: #fff; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; transition: var(--transition); box-shadow: 0 4px 16px rgba(59,130,246,.3); }
+.login-btn:hover { background: var(--accent-hover); transform: translateY(-1px); }
+.login-btn:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+.login-error { background: rgba(239,68,68,.15); border: 1px solid rgba(239,68,68,.3); border-radius: var(--radius-xs); padding: 10px 14px; color: #fca5a5; font-size: 13px; margin-bottom: 16px; }
+
+/* ===== APP LAYOUT ===== */
+#app { display: none; min-height: 100vh; }
+#app.active { display: flex; }
+.sidebar { width: 220px; flex: none; background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; transition: var(--transition); overflow: hidden; }
+.sidebar-brand { padding: 18px 16px; border-bottom: 1px solid var(--line-light); display: flex; align-items: center; gap: 12px; }
+.sidebar-icon { width: 36px; height: 36px; background: var(--accent); border-radius: 12px; display: flex; align-items: center; justify-content: center; flex: none; }
+.sidebar-icon svg { width: 18px; height: 18px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.sidebar-name { font-weight: 700; font-size: 14px; }
+.sidebar-tag { font-size: 11px; color: var(--faint); }
+.sidebar-nav { flex: 1; padding: 8px; overflow: auto; }
+.sidebar-nav button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: none; background: none; border-radius: var(--radius-xs); cursor: pointer; font: inherit; font-size: 13px; color: var(--dim); transition: var(--transition); text-align: right; position: relative; }
+.sidebar-nav button:hover { background: var(--bg); color: var(--ink); transform: translateX(-3px); }
+.sidebar-nav button.active { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.sidebar-nav button .badge { margin-right: auto; font-size: 11px; background: var(--line-light); color: var(--faint); padding: 1px 7px; border-radius: 99px; }
+.sidebar-nav button.active .badge { background: rgba(59,130,246,.1); color: var(--accent); }
+.nav-icon { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+.main { flex: 1; overflow: auto; padding: 24px; }
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes slideRight { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes countUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.anim-fade { animation: fadeIn .4s ease-out both; }
+.anim-up { animation: slideUp .5s cubic-bezier(.16,1,.3,1) both; }
+.anim-right { animation: slideRight .4s cubic-bezier(.16,1,.3,1) both; }
+
+/* ===== HEADER ===== */
+.page-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+.page-title { font-size: 22px; font-weight: 700; }
+.page-sub { font-size: 13px; color: var(--dim); }
+.header-badge { font-size: 12px; background: var(--line-light); color: var(--faint); padding: 4px 12px; border-radius: 99px; }
+.spacer { flex: 1; }
+.search-box { position: relative; }
+.search-box input { padding: 8px 14px 8px 36px; border: 1px solid var(--line); border-radius: var(--radius-xs); font: inherit; font-size: 13px; width: 180px; transition: var(--transition); background: var(--panel); }
+.search-box input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.1); width: 220px; }
+.search-box svg { position: absolute; left: 12px; top: 10px; width: 16px; height: 16px; fill: none; stroke: var(--faint); stroke-width: 2; }
+.btn { padding: 8px 16px; border: 1px solid var(--line); border-radius: var(--radius-xs); background: var(--panel); font: inherit; font-size: 13px; cursor: pointer; transition: var(--transition); display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--bg); }
+.btn-primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 500; box-shadow: 0 2px 8px rgba(59,130,246,.2); }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ===== KPI CARDS ===== */
+.kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+.kpi { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); transition: var(--transition); }
+.kpi:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+.kpi-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+.kpi-label { font-size: 13px; color: var(--dim); }
+.kpi-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
+.kpi-icon svg { width: 20px; height: 20px; fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.kpi-icon.green { background: var(--success); } .kpi-icon.amber { background: var(--warning); }
+.kpi-icon.blue { background: var(--accent); } .kpi-icon.purple { background: var(--purple); }
+.kpi-value { font-size: 26px; font-weight: 700; animation: countUp .6s ease-out both; }
+
+/* ===== CHARTS ===== */
+.charts-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 20px; }
+.chart-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.chart-title { font-size: 14px; font-weight: 600; margin-bottom: 16px; }
+.chart-empty { text-align: center; color: var(--faint); font-size: 13px; padding: 40px 0; }
+
+/* ===== BOTTOM CARDS ===== */
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.list-card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.list-title { font-size: 14px; font-weight: 600; margin-bottom: 12px; }
+.list-item { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; border-radius: var(--radius-xs); transition: var(--transition); cursor: default; }
+.list-item:hover { background: var(--bg); }
+.list-item-name { font-size: 13px; font-weight: 500; }
+.list-item-sub { font-size: 11px; color: var(--faint); margin-top: 2px; }
+.list-item-end { display: flex; align-items: center; gap: 10px; }
+.list-item-amount { font-size: 13px; font-weight: 600; direction: ltr; }
+
+/* ===== STATUS BADGES ===== */
+.badge-status { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+.badge-paid, .badge-issued, .badge-active, .badge-replied, .badge-uploaded { background: var(--success-soft); color: #059669; }
+.badge-sent, .badge-new, .badge-open { background: var(--accent-soft); color: var(--accent); }
+.badge-draft, .badge-inactive, .badge-low, .badge-pending { background: var(--line-light); color: var(--dim); }
+.badge-canceled, .badge-duplicate, .badge-failed, .badge-high, .badge-danger { background: var(--danger-soft); color: var(--danger); }
+.badge-vip, .badge-urgent { background: var(--purple-soft); color: var(--purple); }
+.badge-emailed, .badge-medium, .badge-warning { background: var(--warning-soft); color: #b45309; }
+
+/* ===== TABLE ===== */
+.table-wrap { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.table-scroll { overflow: auto; max-height: calc(100vh - 190px); }
+table { width: 100%; border-collapse: collapse; }
+th { padding: 10px 14px; text-align: right; font-size: 12px; font-weight: 600; color: var(--dim); background: #f8fafc; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 1; white-space: nowrap; }
+td { padding: 10px 14px; font-size: 13px; border-bottom: 1px solid var(--line-light); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+tbody tr { transition: var(--transition); }
+tbody tr:hover { background: #f8fafc; }
+.cell-actions { white-space: nowrap; }
+.cell-actions button { padding: 4px 6px; border: none; background: none; cursor: pointer; border-radius: 6px; transition: var(--transition); opacity: .4; }
+tbody tr:hover .cell-actions button { opacity: 1; }
+.cell-actions button:hover { background: var(--bg); }
+.cell-actions .edit-btn { color: var(--accent); } .cell-actions .del-btn { color: var(--danger); }
+.table-empty { text-align: center; padding: 48px; color: var(--faint); font-size: 13px; }
+
+/* ===== MODAL ===== */
+.modal-overlay { position: fixed; inset: 0; background: rgba(15,23,42,.4); backdrop-filter: blur(4px); z-index: 100; display: flex; align-items: center; justify-content: center; animation: fadeIn .2s ease-out; }
+.modal { background: var(--panel); border-radius: 20px; padding: 28px; width: 90%; max-width: 480px; max-height: 85vh; overflow: auto; box-shadow: var(--shadow-lg); animation: slideUp .35s cubic-bezier(.16,1,.3,1); }
+.modal-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+.modal-title { font-size: 17px; font-weight: 700; }
+.modal-close { width: 32px; height: 32px; border: none; background: none; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: var(--transition); color: var(--faint); }
+.modal-close:hover { background: var(--bg); color: var(--ink); }
+.field-group { margin-bottom: 14px; }
+.field-label { display: block; font-size: 12px; font-weight: 500; color: var(--dim); margin-bottom: 5px; }
+.field-input { width: 100%; padding: 9px 14px; border: 1px solid var(--line); border-radius: var(--radius-xs); font: inherit; font-size: 13px; transition: var(--transition); background: var(--panel); }
+.field-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(59,130,246,.1); }
+select.field-input { cursor: pointer; }
+textarea.field-input { resize: vertical; min-height: 70px; }
+.modal-actions { display: flex; gap: 10px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line-light); }
+.modal-actions .btn-primary { flex: 1; justify-content: center; }
+
+@media (max-width: 900px) {
+  .sidebar { width: 60px; } .sidebar-name, .sidebar-tag, .sidebar-nav button span, .sidebar-nav .badge { display: none; }
+  .charts-grid, .bottom-grid { grid-template-columns: 1fr; }
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN SCREEN ===== -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    </div>
+    <div class="login-title">וולט אלקטרוניקה</div>
+    <div class="login-sub">מערכת ERP חכמה</div>
+    <div id="login-error" class="login-error" style="display:none"></div>
+    <label class="login-label">טוקן Airtable (PAT)</label>
+    <input id="inp-pat" class="login-input" type="password" placeholder="patXXX...">
+    <label class="login-label">מזהה בסיס (Base ID)</label>
+    <input id="inp-base" class="login-input" placeholder="appXXX...">
+    <button id="btn-login" class="login-btn" onclick="doConnect()">התחבר</button>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <div class="sidebar-icon"><svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg></div>
+      <div><div class="sidebar-name">וולט אלקטרוניקה</div><div class="sidebar-tag">ERP-AI</div></div>
+    </div>
+    <nav class="sidebar-nav" id="sidebar-nav"></nav>
+  </aside>
+  <div class="main" id="main-content"></div>
+</div>
+
+<!-- ===== MODAL ===== -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title"></div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-primary" onclick="saveRecord()">שמור</button>
+      <button class="btn" onclick="closeModal()">ביטול</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://api.airtable.com/v0';
+const RO = new Set(['createdTime','formula','rollup','count','autoNumber','lookup','multipleLookupValues','createdBy','lastModifiedBy','button','externalSyncSource','aiText']);
+const HE = {Leads:'לידים',Customers:'לקוחות',Products:'מוצרים',Invoices:'חשבוניות',TaxInvoices:'חשבוניות מס',Receipts:'קבלות',Tasks:'משימות',Files:'קבצים',Orders:'הזמנות',Inventory:'מלאי',Name:'שם',Email:'אימייל',Phone:'טלפון',Status:'סטטוס',Company:'חברה',Title:'כותרת',Description:'תיאור',Priority:'עדיפות',DueDate:'תאריך יעד',CustomerId:'מזהה לקוח',CustomerName:'שם לקוח',DocNumber:'מספר מסמך',IssueDate:'תאריך הפקה',Subtotal:'סכום ביניים',VATRate:'מע"מ %',VATAmount:'סכום מע"מ',Total:'סה"כ',Amount:'סכום',Price:'מחיר',Category:'קטגוריה',InStock:'במלאי',Stock:'מלאי',Brand:'מותג',PaymentMethod:'אמצעי תשלום',RelatedInvoice:'חשבונית מקושרת',InvoiceNumber:'מספר חשבונית',PdfUrl:'קישור PDF',Created:'נוצר',Address:'כתובת',BusinessNumber:'ח.פ.',AssignedTo:'אחראי',ProductId:'מזהה מוצר',LineItems:'פריטים',ValidationError:'שגיאת אימות',DriveLink:'קישור Drive',DocType:'סוג מסמך',GmailThreadId:'שרשור Gmail',ReceiptId:'מזהה קבלה',TaxInvoiceId:'מזהה חש"מ',InvoiceId:'מזהה חשבונית',TaskId:'מזהה משימה',FileId:'מזהה קובץ',OrderId:'מזהה הזמנה',VatAmount:'סכום מע"מ',CustomerBusinessNumber:'ח.פ. לקוח',ProjectId:'מזהה פרויקט',Notes:'הערות',Source:'מקור',Interest:'תחום עניין',City:'עיר',SKU:'מק"ט',Cost:'עלות',Warranty:'אחריות',SupplierId:'מזהה ספק',ProductStatus:'סטטוס מוצר',SourceRecordId:'מזהה מקור',DriveFileId:'מזהה דרייב',Year:'שנה',Month:'חודש',ErrorMessage:'שגיאה',LastContactedAt:'קשר אחרון'};
+const he = s => HE[s] || s;
+
+const ICONS = {
+  dashboard: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>',
+  Leads: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>',
+  Customers: '<svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>',
+  Products: '<svg viewBox="0 0 24 24"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>',
+  Invoices: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  TaxInvoices: '<svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>',
+  Receipts: '<svg viewBox="0 0 24 24"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1-2-1z"/><line x1="8" y1="10" x2="16" y2="10"/><line x1="8" y1="14" x2="16" y2="14"/></svg>',
+  Tasks: '<svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
+  Files: '<svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>',
+  search: '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>',
+  plus: '<svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 11-2.12-9.36L23 10"/></svg>',
+  money: '<svg viewBox="0 0 24 24"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',
+  clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>',
+  users: '<svg viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="19" y2="14"/><line x1="22" y1="11" x2="16" y2="11"/></svg>'
+};
+
+let pat, base, tables = [], allData = {}, currentTable = null, currentView = 'dashboard', editingRec = null;
+let revenueChart = null, statusChart = null;
+
+async function apiFetch(path, opts = {}) {
+  const r = await fetch(API + path, { ...opts, headers: { Authorization: 'Bearer ' + pat, 'Content-Type': 'application/json' } });
+  const j = await r.json();
+  if (!r.ok) throw new Error(j.error?.message || r.status);
+  return j;
+}
+
+async function doConnect() {
+  pat = document.getElementById('inp-pat').value.trim();
+  base = document.getElementById('inp-base').value.trim();
+  if (!pat || !base) return;
+  document.getElementById('btn-login').disabled = true;
+  document.getElementById('btn-login').textContent = 'מתחבר...';
+  try {
+    const meta = await apiFetch('/meta/bases/' + base + '/tables');
+    tables = meta.tables;
+    localStorage.setItem('erp_pat', pat);
+    localStorage.setItem('erp_base', base);
+    for (const t of tables) {
+      try { allData[t.name] = (await apiFetch('/' + base + '/' + t.id + '?pageSize=100')).records || []; }
+      catch { allData[t.name] = []; }
+    }
+    document.getElementById('login-screen').style.display = 'none';
+    document.getElementById('app').classList.add('active');
+    buildSidebar();
+    showDashboard();
+  } catch (e) {
+    document.getElementById('login-error').style.display = 'block';
+    document.getElementById('login-error').textContent = e.message;
+  }
+  document.getElementById('btn-login').disabled = false;
+  document.getElementById('btn-login').textContent = 'התחבר';
+}
+
+function buildSidebar() {
+  const nav = document.getElementById('sidebar-nav');
+  nav.innerHTML = '<button class="active" onclick="showDashboard()" data-view="dashboard"><span class="nav-icon">' + ICONS.dashboard + '</span><span>לוח בקרה</span></button>';
+  tables.forEach(t => {
+    const icon = ICONS[t.name] || ICONS.Files;
+    const count = (allData[t.name] || []).length;
+    nav.innerHTML += '<button onclick="openTable(\'' + t.id + '\')" data-view="' + t.id + '"><span class="nav-icon">' + icon + '</span><span>' + he(t.name) + '</span><span class="badge">' + count + '</span></button>';
+  });
+}
+
+function setActiveNav(viewId) {
+  document.querySelectorAll('.sidebar-nav button').forEach(b => b.classList.toggle('active', b.dataset.view === viewId));
+}
+
+function statusBadge(val) {
+  if (!val) return '';
+  const cls = 'badge-' + val.toLowerCase().replace(/[^a-z]/g, '');
+  return '<span class="badge-status ' + cls + '">' + val + '</span>';
+}
+
+function cellValue(v) {
+  if (v == null) return '';
+  if (Array.isArray(v)) return v.map(cellValue).join(', ');
+  if (typeof v === 'object') return v.name ?? v.url ?? JSON.stringify(v);
+  if (v === true) return '✓';
+  if (v === false) return '';
+  return String(v);
+}
+
+function animateNumber(el, target, prefix, suffix) {
+  let current = 0;
+  const duration = 1200;
+  const start = Date.now();
+  const tick = () => {
+    const progress = Math.min((Date.now() - start) / duration, 1);
+    const eased = 1 - Math.pow(1 - progress, 3);
+    current = Math.round(target * eased);
+    el.textContent = (prefix || '') + current.toLocaleString() + (suffix || '');
+    if (progress < 1) requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+
+function showDashboard() {
+  currentView = 'dashboard'; currentTable = null;
+  setActiveNav('dashboard');
+  const invoices = allData.Invoices || [];
+  const tasks = allData.Tasks || [];
+  const leads = allData.Leads || [];
+  const paid = invoices.filter(r => r.fields.Status === 'paid');
+  const paidSum = paid.reduce((s, r) => s + (r.fields.Total || 0), 0);
+  const totalSum = invoices.reduce((s, r) => s + (r.fields.Total || 0), 0);
+  const pendingSum = totalSum - paidSum;
+  const newLeads = leads.filter(r => r.fields.Status === 'new').length;
+  const openTasks = tasks.filter(r => r.fields.Status === 'open').length;
+
+  const main = document.getElementById('main-content');
+  main.innerHTML = `
+    <div class="page-header anim-fade"><div><div class="page-title">בוקר טוב 👋</div><div class="page-sub">הנה סיכום המערכת שלך</div></div><span class="spacer"></span><button class="btn" onclick="doConnect()"><span class="nav-icon">${ICONS.refresh}</span>רענון</button></div>
+    <div class="kpi-grid">
+      <div class="kpi anim-up" style="animation-delay:.05s"><div class="kpi-top"><span class="kpi-label">הכנסות (שולם)</span><div class="kpi-icon green"><span class="nav-icon">${ICONS.money}</span></div></div><div class="kpi-value" id="kpi-revenue">₪0</div></div>
+      <div class="kpi anim-up" style="animation-delay:.1s"><div class="kpi-top"><span class="kpi-label">ממתין לתשלום</span><div class="kpi-icon amber"><span class="nav-icon">${ICONS.clock}</span></div></div><div class="kpi-value" id="kpi-pending">₪0</div></div>
+      <div class="kpi anim-up" style="animation-delay:.15s"><div class="kpi-top"><span class="kpi-label">לידים חדשים</span><div class="kpi-icon blue"><span class="nav-icon">${ICONS.users}</span></div></div><div class="kpi-value" id="kpi-leads">0</div></div>
+      <div class="kpi anim-up" style="animation-delay:.2s"><div class="kpi-top"><span class="kpi-label">משימות פתוחות</span><div class="kpi-icon purple"><span class="nav-icon">${ICONS.check}</span></div></div><div class="kpi-value" id="kpi-tasks">0</div></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card anim-up" style="animation-delay:.25s"><div class="chart-title">הכנסות לפי לקוח</div><canvas id="chart-revenue" height="200"></canvas></div>
+      <div class="chart-card anim-up" style="animation-delay:.3s"><div class="chart-title">סטטוס חשבוניות</div><canvas id="chart-status" height="200"></canvas></div>
+    </div>
+    <div class="bottom-grid">
+      <div class="list-card anim-up" style="animation-delay:.35s"><div class="list-title">חשבוניות אחרונות</div><div id="recent-invoices"></div></div>
+      <div class="list-card anim-up" style="animation-delay:.4s"><div class="list-title">משימות פתוחות</div><div id="open-tasks"></div></div>
+    </div>`;
+
+  setTimeout(() => {
+    animateNumber(document.getElementById('kpi-revenue'), paidSum, '₪');
+    animateNumber(document.getElementById('kpi-pending'), pendingSum, '₪');
+    animateNumber(document.getElementById('kpi-leads'), newLeads);
+    animateNumber(document.getElementById('kpi-tasks'), openTasks);
+  }, 200);
+
+  // Revenue by customer chart
+  const byCustomer = {};
+  invoices.forEach(r => { const n = r.fields.CustomerName || r.fields.CustomerId || '?'; byCustomer[n] = (byCustomer[n] || 0) + (r.fields.Total || 0); });
+  const sorted = Object.entries(byCustomer).sort((a,b) => b[1] - a[1]).slice(0, 6);
+  if (revenueChart) revenueChart.destroy();
+  const ctx1 = document.getElementById('chart-revenue');
+  if (ctx1 && sorted.length) {
+    revenueChart = new Chart(ctx1, { type: 'bar', data: { labels: sorted.map(s => s[0].length > 14 ? s[0].slice(0,14)+'…' : s[0]), datasets: [{ data: sorted.map(s => s[1]), backgroundColor: ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#06b6d4'], borderRadius: 8, borderSkipped: false }] }, options: { indexAxis: 'y', responsive: true, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => '₪' + c.raw.toLocaleString() } } }, scales: { x: { grid: { display: false }, ticks: { callback: v => '₪' + v.toLocaleString() } }, y: { grid: { display: false } } } } });
+  }
+
+  // Status pie
+  const statuses = { paid: 0, sent: 0, draft: 0 };
+  invoices.forEach(r => { if (statuses[r.fields.Status] !== undefined) statuses[r.fields.Status]++; });
+  const pieData = Object.entries(statuses).filter(([,v]) => v > 0);
+  if (statusChart) statusChart.destroy();
+  const ctx2 = document.getElementById('chart-status');
+  if (ctx2 && pieData.length) {
+    statusChart = new Chart(ctx2, { type: 'doughnut', data: { labels: pieData.map(([k]) => k === 'paid' ? 'שולם' : k === 'sent' ? 'נשלח' : 'טיוטה'), datasets: [{ data: pieData.map(([,v]) => v), backgroundColor: ['#10b981','#3b82f6','#94a3b8'], borderWidth: 0, spacing: 4 }] }, options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true, pointStyle: 'circle' } } } } });
+  }
+
+  // Recent invoices
+  const riDiv = document.getElementById('recent-invoices');
+  if (invoices.length === 0) { riDiv.innerHTML = '<div class="chart-empty">אין חשבוניות עדיין</div>'; }
+  else { riDiv.innerHTML = invoices.slice(0, 5).map(r => '<div class="list-item"><div><div class="list-item-name">' + (r.fields.InvoiceNumber || 'INV-' + r.fields.DocNumber) + '</div><div class="list-item-sub">' + (r.fields.CustomerName || r.fields.CustomerId || '') + '</div></div><div class="list-item-end">' + statusBadge(r.fields.Status) + '<span class="list-item-amount">₪' + (r.fields.Total || 0).toLocaleString() + '</span></div></div>').join(''); }
+
+  // Open tasks
+  const otDiv = document.getElementById('open-tasks');
+  const ot = tasks.filter(r => r.fields.Status === 'open');
+  if (ot.length === 0) { otDiv.innerHTML = '<div class="chart-empty">אין משימות פתוחות 🎉</div>'; }
+  else { otDiv.innerHTML = ot.slice(0, 5).map(r => '<div class="list-item"><div class="list-item-name">' + (r.fields.Title || '') + '</div><div class="list-item-end">' + statusBadge(r.fields.Priority) + '<span class="list-item-sub">' + (r.fields.DueDate || '') + '</span></div></div>').join(''); }
+}
+
+async function openTable(tableId) {
+  currentTable = tables.find(t => t.id === tableId);
+  if (!currentTable) return;
+  currentView = 'table';
+  setActiveNav(tableId);
+  const main = document.getElementById('main-content');
+  main.innerHTML = '<div class="page-header anim-fade"><div class="page-title">' + he(currentTable.name) + '</div><span class="header-badge" id="row-count">0 רשומות</span><span class="spacer"></span><div class="search-box">' + ICONS.search + '<input id="table-search" placeholder="חיפוש..." oninput="filterTable()"></div><button class="btn btn-primary" onclick="openEdit(null)">' + ICONS.plus + ' חדש</button><button class="btn" onclick="refreshCurrentTable()">' + ICONS.refresh + '</button></div><div class="table-wrap"><div class="table-scroll"><table><thead id="t-head"></thead><tbody id="t-body"></tbody></table></div></div>';
+  try {
+    const j = await apiFetch('/' + base + '/' + currentTable.id + '?pageSize=100');
+    allData[currentTable.name] = j.records || [];
+    renderTable();
+  } catch (e) { main.innerHTML += '<div class="login-error">' + e.message + '</div>'; }
+}
+
+function renderTable() {
+  if (!currentTable) return;
+  const recs = allData[currentTable.name] || [];
+  const needle = (document.getElementById('table-search')?.value || '').toLowerCase();
+  const cols = currentTable.fields;
+  document.getElementById('t-head').innerHTML = '<tr>' + cols.map(f => '<th>' + he(f.name) + '</th>').join('') + '<th></th></tr>';
+  const filtered = recs.filter(r => !needle || cols.some(f => cellValue(r.fields[f.name]).toLowerCase().includes(needle)));
+  document.getElementById('row-count').textContent = filtered.length + ' רשומות';
+  if (filtered.length === 0) {
+    document.getElementById('t-body').innerHTML = '<tr><td colspan="' + (cols.length + 1) + '" class="table-empty">' + (needle ? 'לא נמצאו תוצאות' : 'הטבלה ריקה') + '</td></tr>';
+    return;
+  }
+  document.getElementById('t-body').innerHTML = filtered.map((r, i) => {
+    const delay = Math.min(i * 25, 300);
+    return '<tr class="anim-right" style="animation-delay:' + delay + 'ms">' + cols.map(f => {
+      const v = cellValue(r.fields[f.name]);
+      const isStatus = f.name.toLowerCase().includes('status') || f.name === 'Priority';
+      return '<td title="' + v.replace(/"/g, '&quot;') + '">' + (isStatus ? statusBadge(r.fields[f.name]) : v) + '</td>';
+    }).join('') + '<td class="cell-actions"><button class="edit-btn" onclick="openEdit(\'' + r.id + '\')" title="עריכה">✎</button><button class="del-btn" onclick="deleteRec(\'' + r.id + '\')" title="מחיקה">🗑</button></td></tr>';
+  }).join('');
+}
+
+function filterTable() { renderTable(); }
+
+async function refreshCurrentTable() {
+  if (!currentTable) return;
+  try {
+    const j = await apiFetch('/' + base + '/' + currentTable.id + '?pageSize=100');
+    allData[currentTable.name] = j.records || [];
+    renderTable();
+  } catch (e) { alert(e.message); }
+}
+
+function openEdit(recId) {
+  editingRec = recId ? (allData[currentTable.name] || []).find(r => r.id === recId) : null;
+  document.getElementById('modal-title').textContent = (editingRec ? 'עריכת רשומה' : 'רשומה חדשה') + ' — ' + he(currentTable.name);
+  const fields = currentTable.fields.filter(f => !RO.has(f.type));
+  const body = document.getElementById('modal-body');
+  body.innerHTML = fields.map(f => {
+    const val = editingRec ? editingRec.fields[f.name] : '';
+    let inputHtml;
+    if (f.type === 'singleSelect') {
+      const choices = (f.options?.choices || []).map(c => '<option value="' + c.name + '"' + (val === c.name ? ' selected' : '') + '>' + c.name + '</option>').join('');
+      inputHtml = '<select class="field-input" data-field="' + f.name + '" data-type="' + f.type + '"><option value="">בחר...</option>' + choices + '</select>';
+    } else if (f.type === 'multilineText' || f.type === 'richText') {
+      inputHtml = '<textarea class="field-input" data-field="' + f.name + '" data-type="' + f.type + '" rows="3">' + (val || '') + '</textarea>';
+    } else if (f.type === 'checkbox') {
+      inputHtml = '<input type="checkbox" data-field="' + f.name + '" data-type="checkbox"' + (val ? ' checked' : '') + '>';
+    } else {
+      const t = ['number','currency','percent','rating'].includes(f.type) ? 'number' : f.type === 'date' ? 'date' : f.type === 'dateTime' ? 'datetime-local' : f.type === 'email' ? 'email' : f.type === 'url' ? 'url' : 'text';
+      const dir = ['email','url'].includes(f.type) ? ' dir="ltr"' : '';
+      const v = f.type === 'dateTime' && val ? val.slice(0, 16) : (val ?? '');
+      inputHtml = '<input type="' + t + '" class="field-input" data-field="' + f.name + '" data-type="' + f.type + '" value="' + String(v).replace(/"/g, '&quot;') + '"' + dir + (t === 'number' ? ' step="any"' : '') + '>';
+    }
+    return '<div class="field-group"><label class="field-label">' + he(f.name) + '</label>' + inputHtml + '</div>';
+  }).join('');
+  document.getElementById('modal-overlay').style.display = 'flex';
+}
+
+function closeModal() { document.getElementById('modal-overlay').style.display = 'none'; }
+
+async function saveRecord() {
+  const inputs = document.querySelectorAll('#modal-body [data-field]');
+  const fields = {};
+  inputs.forEach(el => {
+    const name = el.dataset.field;
+    const type = el.dataset.type;
+    if (type === 'checkbox') fields[name] = el.checked;
+    else if (el.value === '') fields[name] = null;
+    else if (['number','currency','percent','rating'].includes(type)) fields[name] = Number(el.value);
+    else fields[name] = el.value;
+  });
+  try {
+    if (editingRec) {
+      await apiFetch('/' + base + '/' + currentTable.id + '/' + editingRec.id, { method: 'PATCH', body: JSON.stringify({ fields, typecast: true }) });
+    } else {
+      await apiFetch('/' + base + '/' + currentTable.id, { method: 'POST', body: JSON.stringify({ fields, typecast: true }) });
+    }
+    closeModal();
+    await refreshCurrentTable();
+  } catch (e) { alert('שגיאה: ' + e.message); }
+}
+
+async function deleteRec(id) {
+  if (!confirm('למחוק את הרשומה?')) return;
+  try {
+    await apiFetch('/' + base + '/' + currentTable.id + '/' + id, { method: 'DELETE' });
+    allData[currentTable.name] = (allData[currentTable.name] || []).filter(r => r.id !== id);
+    renderTable();
+  } catch (e) { alert(e.message); }
+}
+
+// Auto-connect
+const savedPat = localStorage.getItem('erp_pat');
+const savedBase = localStorage.getItem('erp_base');
+if (savedPat && savedBase) {
+  document.getElementById('inp-pat').value = savedPat;
+  document.getElementById('inp-base').value = savedBase;
+}
+</script>
+</body>
+</html>
