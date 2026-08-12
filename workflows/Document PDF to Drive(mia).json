@@ -92,7 +92,7 @@
           "parameters": [
             {
               "name": "X-API-Key",
-              "value": "sk_e97855d4cec3d16d5ea2976895af02c683396554"
+             "value": "YOUR_PDFSHIFT_API_KEY"
             }
           ]
         },
