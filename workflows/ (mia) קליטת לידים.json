@@ -1,0 +1,341 @@
+{
+  "name": "קליטת לידים",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "NewLeads",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "11192857-87ff-4b47-b6d5-357cd4ec9f86",
+      "name": "Webhook",
+      "webhookId": "94d4ac08-5256-4413-85f5-25097fba7ca7"
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblcbPwPhEL8OnKcS",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblcbPwPhEL8OnKcS"
+        },
+        "filterByFormula": "=",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        208,
+        0
+      ],
+      "id": "0228f914-ea6c-4c65-a5c2-f1b3f3843153",
+      "name": "Search records",
+      "alwaysOutputData": true,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "73620c1a-4def-4938-be5f-196e6227f02e",
+              "leftValue": "={{ $json.fields.Email }}",
+              "rightValue": "={{ $('Webhook').item.json.body.Email }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        416,
+        0
+      ],
+      "id": "8f9879fa-ea17-4d14-a1f5-d69447ff921b",
+      "name": "If the same email"
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.Email }}",
+        "subject": "ההרשמה שלך בוצעה !!!",
+        "message": "=<!DOCTYPE html> <html lang=\"he\" dir=\"rtl\"> <head> <meta charset=\"UTF-8\"> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"> <title>ההרשמה בוצעה בהצלחה</title> </head> <body style=\"margin:0; padding:0; background-color:#f5eeec; font-family:Arial, 'Segoe UI', sans-serif;\" dir=\"rtl\">    <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f5eeec; padding:32px 0;\">     <tr>       <td align=\"center\">          <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden;\">            <!-- כותרת עליונה -->           <tr>             <td style=\"background-color:#f7e3e5; padding:36px 40px 28px; text-align:center;\">               <div style=\"display:inline-block; background-color:#d98e9b; color:#ffffff; font-size:12px; font-weight:bold; letter-spacing:2px; padding:6px 14px; border-radius:20px;\">                 ⚡ וולט אלקטרוניקה               </div>               <h1 style=\"color:#4a3a3e; font-size:26px; margin:22px 0 6px; font-weight:bold;\">                 ההרשמה בוצעה בהצלחה! ✅               </h1>               <p style=\"color:#a08a8e; font-size:14px; margin:0;\">                 הפרטים שלך נקלטו במערכת ה-ERP החכמה שלנו               </p>             </td>           </tr>            <!-- פס הפרדה -->           <tr>             <td style=\"height:4px; background-color:#e9c3ca; font-size:0; line-height:0;\">&nbsp;</td>           </tr>            <!-- גוף המייל -->           <tr>             <td style=\"padding:36px 40px 8px;\">               <p style=\"font-size:17px; color:#4a3a3e; margin:0 0 16px; font-weight:bold;\">                 היי {{ $json.body.Name }} 👋               </p>               <p style=\"font-size:15px; color:#6b5a5e; line-height:1.7; margin:0 0 24px;\">                 תודה שנרשמת! הפנייה שלך התקבלה ונכנסה לטיפול.                 אצלנו לא יושב פקיד שמעתיק פרטים לאקסל — <strong style=\"color:#4a3a3e;\">סוכן בינה מלאכותית</strong> כבר קלט את הליד שלך, פתח כרטיס לקוח, ויחזור אליך עם כל המידע שביקשת.               </p>             </td>           </tr>            <!-- מה קורה עכשיו -->           <tr>             <td style=\"padding:0 40px 32px;\">               <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#faf3f1; border-radius:12px;\">                 <tr>                   <td style=\"padding:24px 26px;\">                     <p style=\"font-size:13px; color:#c4a3a9; letter-spacing:1.5px; font-weight:bold; margin:0 0 14px;\">                       מה קורה מאחורי הקלעים 🤖                     </p>                     <p style=\"font-size:14px; color:#6b5a5e; line-height:1.9; margin:0;\">                       📥 &nbsp;הפרטים שלך נשמרו אוטומטית ב-CRM<br>                       🧠 &nbsp;סוכן AI מנתח את הפנייה ומכין מענה מותאם<br>                       📧 &nbsp;מייל תשובה מפורט בדרך אליך<br>                       📊 &nbsp;בעל העסק רואה הכול בזמן אמת באפליקציית הניהול                     </p>                   </td>                 </tr>               </table>             </td>           </tr>            <!-- כפתור -->           <tr>             <td align=\"center\" style=\"padding:0 40px 40px;\">               <a href=\"https://example.com\" style=\"display:inline-block; background-color:#d98e9b; color:#ffffff; font-size:15px; font-weight:bold; text-decoration:none; padding:14px 38px; border-radius:10px;\">                 לקטלוג המוצרים שלנו ←               </a>             </td>           </tr>            <!-- פוטר -->           <tr>             <td style=\"background-color:#f7e3e5; padding:24px 40px; text-align:center;\">               <p style=\"color:#a08a8e; font-size:12px; line-height:1.8; margin:0;\">                 וולט אלקטרוניקה · מערכת ERP מבוססת AI<br>                 מייל זה נשלח אוטומטית על ידי תהליך n8n — אין צורך להשיב אליו               </p>             </td>           </tr>          </table>        </td>     </tr>   </table>  </body> </html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        832,
+        160
+      ],
+      "id": "4e097bca-35f7-4129-9ff0-409974a05d8b",
+      "name": "send message to lead",
+      "webhookId": "d7ce93fa-c641-4a6d-9935-ca98c60ac21e",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zmB0VUM9ajv44762",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Webhook').item.json.body.Email }}",
+        "subject": "כבר נרשמת לאתר שלנו !!",
+        "message": "=<!DOCTYPE html> <html lang=\"he\" dir=\"rtl\"> <body style=\"margin:0; padding:0; background-color:#f5eeec; font-family:Arial, 'Segoe UI', sans-serif;\" dir=\"rtl\">   <table role=\"presentation\" width=\"100%\" cellpadding=\"0\" cellspacing=\"0\" style=\"background-color:#f5eeec; padding:32px 0;\">     <tr>       <td align=\"center\">         <table role=\"presentation\" width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"max-width:600px; width:100%; background-color:#ffffff; border-radius:16px; overflow:hidden;\">           <tr>             <td style=\"background-color:#f7e3e5; padding:36px 40px 28px; text-align:center;\">               <div style=\"display:inline-block; background-color:#d98e9b; color:#ffffff; font-size:12px; font-weight:bold; letter-spacing:2px; padding:6px 14px; border-radius:20px;\">                 ⚡ וולט אלקטרוניקה               </div>               <h1 style=\"color:#4a3a3e; font-size:26px; margin:22px 0 6px; font-weight:bold;\">                 היי, כבר הכרנו! 💌               </h1>             </td>           </tr>           <tr>             <td style=\"height:4px; background-color:#e9c3ca; font-size:0; line-height:0;\">&nbsp;</td>           </tr>           <tr>             <td style=\"padding:36px 40px 40px;\">               <p style=\"font-size:17px; color:#4a3a3e; margin:0 0 16px; font-weight:bold;\">                 היי {{ $json.body.Name }} 👋               </p>               <p style=\"font-size:15px; color:#6b5a5e; line-height:1.7; margin:0;\">                 בדקנו במערכת — <strong style=\"color:#4a3a3e;\">כתובת המייל הזו כבר רשומה אצלנו</strong>, אז אין צורך להירשם שוב.                 הפרטים שלך שמורים, ואם שלחת פנייה חדשה — הצוות (וגם סוכן ה-AI שלנו 🤖) כבר על זה ויחזרו אליך בהקדם.               </p>             </td>           </tr>           <tr>             <td style=\"background-color:#f7e3e5; padding:24px 40px; text-align:center;\">               <p style=\"color:#a08a8e; font-size:12px; line-height:1.8; margin:0;\">                 וולט אלקטרוניקה · מערכת ERP מבוססת AI<br>                 מייל זה נשלח אוטומטית על ידי תהליך n8n — אין צורך להשיב אליו               </p>             </td>           </tr>         </table>       </td>     </tr>   </table> </body> </html>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        624,
+        -112
+      ],
+      "id": "795719f6-c753-40c8-b4f5-346dbe0ddea1",
+      "name": "Send a message",
+      "webhookId": "988ff90e-769f-4d57-900f-a706ea198501",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zmB0VUM9ajv44762",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblcbPwPhEL8OnKcS",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblcbPwPhEL8OnKcS"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Name": "={{ $('Webhook').item.json.body.Name }}",
+            "Email": "={{ $('Webhook').item.json.body.Email }}",
+            "Phone": "={{ $('Webhook').item.json.body.Phone }}",
+            "Status": "={{ $('Webhook').item.json.body.Status }}",
+            "Created": "={{ $json.createdTime }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Company",
+              "displayName": "Company",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "GmailThreadId",
+              "displayName": "GmailThreadId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "LastContactedAt",
+              "displayName": "LastContactedAt",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        608,
+        160
+      ],
+      "id": "ba459759-0471-4793-83e4-4c93558c839b",
+      "name": "Create a record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Search records",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search records": {
+      "main": [
+        [
+          {
+            "node": "If the same email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If the same email": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create a record",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a record": {
+      "main": [
+        [
+          {
+            "node": "send message to lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "483ae22a-fa74-4c3e-ae7d-23a657f499da",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acf763597c509dc3bf8240459dbc6de11a0d51d6a3de4ce5f49224ae023e03d"
+  },
+  "nodeGroups": [],
+  "id": "KRTHoIaHjpvh6lnN",
+  "tags": []
+}

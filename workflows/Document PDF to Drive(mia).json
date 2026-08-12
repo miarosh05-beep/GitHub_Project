@@ -1,0 +1,1191 @@
+{
+  "name": "Document PDF to Drive",
+  "nodes": [
+    {
+      "parameters": {
+        "name": "={{ $('Merge').item.json.ReceiptId ?? $('Merge').item.json.TaxInvoiceId ?? $('Merge').item.json.InvoiceNumber ?? 'doc' }}.pdf",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1afvQx_Uhb7ayhbURiqJOOK7XckIetK1u",
+          "mode": "list",
+          "cachedResultName": "Prompt examples ",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1afvQx_Uhb7ayhbURiqJOOK7XckIetK1u"
+        },
+        "options": {}
+      },
+      "id": "8440c22d-b753-43bd-a83d-a03b531d6fba",
+      "name": "Upload PDF",
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1312,
+        208
+      ],
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "BdgWcxHHDolbaOH1",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbllohHshoSs7dvBj",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbllohHshoSs7dvBj"
+        },
+        "filterByFormula": "={Status} = \"draft\"",
+        "options": {}
+      },
+      "id": "c37de9ef-9581-4e51-946c-cd4a031193b6",
+      "name": "Pending Invoices",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        208
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "html": "<!doctype html>\n<html dir=\"rtl\" lang=\"he\">\n<head>\n  <meta charset=\"utf-8\">\n  <title>מסמך {{ $json.DocNumber }}</title>\n  <style>\n    @import url('https://fonts.googleapis.com/css2?family=Rubik:wght@400;500;700&display=swap');\n    * { box-sizing: border-box; }\n    body { font-family: 'Rubik', Arial, sans-serif; color: #1b2333; margin: 0; padding: 48px; font-size: 14px; }\n    .header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 3px solid #1f2d5a; padding-bottom: 16px; }\n    .brand h1 { margin: 0; color: #1f2d5a; font-size: 26px; }\n    .brand .tagline { color: #6b7280; font-size: 12px; margin-top: 4px; }\n    .company { text-align: left; font-size: 12px; color: #4b5563; line-height: 1.6; }\n    .doc-meta { margin-top: 24px; display: flex; justify-content: space-between; }\n    .doc-meta .box h2 { margin: 0 0 8px; font-size: 18px; color: #1f2d5a; }\n    .doc-meta .box p { margin: 2px 0; }\n    .totals { margin-top: 20px; margin-left: auto; width: 300px; }\n    .totals .row { display: flex; justify-content: space-between; padding: 6px 0; }\n    .totals .grand { border-top: 2px solid #1f2d5a; margin-top: 6px; padding-top: 10px; font-size: 18px; font-weight: bold; color: #1f2d5a; }\n    .footer { margin-top: 48px; text-align: center; color: #9ca3af; font-size: 11px; border-top: 1px solid #e5e7eb; padding-top: 12px; }\n    .num { text-align: left; direction: ltr; }\n    .payment-box { margin-top: 24px; padding: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; }\n    .payment-box p { margin: 4px 0; }\n    .related { margin-top: 16px; padding: 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 8px; }\n    table { width: 100%; border-collapse: collapse; margin-top: 24px; }\n    th { background: #1f2d5a; color: #fff; padding: 10px; text-align: right; font-size: 13px; }\n    td { padding: 10px; border-bottom: 1px solid #e5e7eb; }\n    tr:nth-child(even) td { background: #f9fafb; }\n  </style>\n</head>\n<body>\n\n  <!-- כותרת העסק -->\n  <div class=\"header\">\n    <div class=\"brand\">\n      <h1>AI Electronics · איי.איי אלקטרוניקה</h1>\n      <div class=\"tagline\">מוצרי אלקטרוניקה מקוריים באחריות יבואן רשמי</div>\n    </div>\n    <div class=\"company\">\n      ח.פ / עוסק מורשה: 515-678-923<br>\n      רחוב הברזל 30, תל אביב<br>\n      טל' 03-555-1234 · info@aielectronics.co.il\n    </div>\n  </div>\n\n  <!-- פרטי המסמך + לקוח -->\n  <div class=\"doc-meta\">\n    <div class=\"box\">\n      <h2>{{ $json.TaxInvoiceId ? 'חשבונית מס' : $json.ReceiptId ? 'קבלה' : 'חשבונית' }}</h2>\n      <p>מספר מסמך: <strong>{{ $json.DocNumber }}</strong></p>\n      <p>תאריך: {{ $json.IssueDate }}</p>\n    </div>\n    <div class=\"box\">\n      <h2>לכבוד</h2>\n      <p><strong>{{ $json.CustomerName }}</strong></p>\n      <p>{{ $json.CustomerBusinessNumber ? 'ח.פ: ' + $json.CustomerBusinessNumber : '' }}</p>\n      <p>{{ $json.CustomerId }}</p>\n    </div>\n  </div>\n\n  <!-- טבלת פריטים — רק לחשבוניות ולחשבוניות מס -->\n  {{ $json.LineItems ? '<table><thead><tr><th>פריט</th><th class=\"num\">כמות</th><th class=\"num\">מחיר יחידה</th><th class=\"num\">סה\"כ</th></tr></thead><tbody>' + $json.LineItems + '</tbody></table>' : '' }}\n\n  <!-- סכומים -->\n  <div class=\"totals\">\n    {{ $json.Subtotal ? '<div class=\"row\"><span>סכום ביניים</span><span class=\"num\">' + $json.Subtotal + '₪</span></div>' : '' }}\n  {{ $json.VATRate ? '<div class=\"row\"><span>מע\"מ (' + (Number($json.VATRate) * 100) + '%)</span><span class=\"num\">' + Math.round(Number($json.Subtotal) * Number($json.VATRate)) + '₪</span></div>' : '' }}\n    <div class=\"row grand\">\n      <span>סה\"כ {{ $json.ReceiptId ? 'ששולם' : 'לתשלום' }}</span>\n      <span class=\"num\">{{ $json.Total ?? $json.Amount }}₪</span>\n    </div>\n  </div>\n\n  <!-- אמצעי תשלום — רק בקבלות -->\n  {{ $json.PaymentMethod ? '<div class=\"payment-box\"><p><strong>אמצעי תשלום:</strong> ' + $json.PaymentMethod + '</p></div>' : '' }}\n\n  <!-- חשבונית מקושרת — רק בקבלות -->\n  {{ $json.RelatedInvoice ? '<div class=\"related\"><p>עבור חשבונית מספר: <strong>' + $json.RelatedInvoice + '</strong></p></div>' : '' }}\n\n  <!-- פוטר -->\n  <div class=\"footer\">\n    תודה שבחרתם ב-AI Electronics · מסמך זה הופק אוטומטית על ידי מערכת ה-ERP\n  </div>\n\n</body>\n</html>"
+      },
+      "type": "n8n-nodes-base.html",
+      "typeVersion": 1.2,
+      "position": [
+        944,
+        208
+      ],
+      "id": "7ecc6292-37bd-46ab-8a7f-ba1e2f257a2a",
+      "name": "HTML"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.pdfshift.io/v3/convert/pdf",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-API-Key",
+              "value": "sk_e97855d4cec3d16d5ea2976895af02c683396554"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "source",
+              "value": "={{ $json.html }}"
+            },
+            {
+              "name": "format",
+              "value": "A4"
+            },
+            {
+              "name": "delay",
+              "value": "={{ 500 }}"
+            },
+            {
+              "name": "sandbox",
+              "value": "={{ true }}"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "id": "6ed5de51-5df1-476f-ad8f-917bded77c1e",
+      "name": "HTML to PDF",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1136,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUoMsNA3QBfPVnt",
+          "mode": "list",
+          "cachedResultName": "TaxInvoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblUoMsNA3QBfPVnt"
+        },
+        "filterByFormula": "Status='Draft'",
+        "options": {}
+      },
+      "id": "7838352a-e547-494e-b5f2-a63df2468c6a",
+      "name": "Pending Tax Invoices",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        448
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljWoX1j2qX03Gwl",
+          "mode": "list",
+          "cachedResultName": "Receipts",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbljWoX1j2qX03Gwl"
+        },
+        "filterByFormula": "={Status} = \"draft\"",
+        "options": {}
+      },
+      "id": "9ae9cc83-3d3d-473c-a7c1-241c4ad0d02e",
+      "name": "Pending Receipts",
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 3
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        752,
+        192
+      ],
+      "id": "1e503201-5ae4-432c-abff-8e215d2db4a8",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljWoX1j2qX03Gwl",
+          "mode": "list",
+          "cachedResultName": "Receipts",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbljWoX1j2qX03Gwl"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Pending Receipts').item.json.id }}",
+            "DocNumber": 0,
+            "Amount": 0,
+            "Status": "issued"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "ReceiptId",
+              "displayName": "ReceiptId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PaymentMethod",
+              "displayName": "PaymentMethod",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "cash",
+                  "value": "cash"
+                },
+                {
+                  "name": "credit_card",
+                  "value": "credit_card"
+                },
+                {
+                  "name": "bank_transfer",
+                  "value": "bank_transfer"
+                },
+                {
+                  "name": "check",
+                  "value": "check"
+                },
+                {
+                  "name": "bit",
+                  "value": "bit"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "RelatedInvoice",
+              "displayName": "RelatedInvoice",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "draft",
+                  "value": "draft"
+                },
+                {
+                  "name": "issued",
+                  "value": "issued"
+                },
+                {
+                  "name": "canceled",
+                  "value": "canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1504,
+        208
+      ],
+      "id": "7478197c-d970-44be-9dc8-5244921eb28c",
+      "name": "Update Reciept",
+      "retryOnFail": false,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUoMsNA3QBfPVnt",
+          "mode": "list",
+          "cachedResultName": "TaxInvoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblUoMsNA3QBfPVnt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Pending Tax Invoices').item.json.id }}",
+            "Status": "Issued"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "TaxInvoiceId",
+              "displayName": "TaxInvoiceId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CustomerBusinessNumber",
+              "displayName": "CustomerBusinessNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "LineItems",
+              "displayName": "LineItems",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VATRate",
+              "displayName": "VATRate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VATAmount",
+              "displayName": "VATAmount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Draft",
+                  "value": "Draft"
+                },
+                {
+                  "name": "Issued",
+                  "value": "Issued"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Cancelled",
+                  "value": "Cancelled"
+                },
+                {
+                  "name": "Invalid",
+                  "value": "Invalid"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1664,
+        208
+      ],
+      "id": "42b2651b-efa3-4d33-b04b-ad8ec8c64495",
+      "name": "Update Tax Invoices",
+      "retryOnFail": false,
+      "maxTries": 2,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbllohHshoSs7dvBj",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbllohHshoSs7dvBj"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $('Pending Invoices').item.json.id }}",
+            "Status": "Issued"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true
+            },
+            {
+              "id": "InvoiceId",
+              "displayName": "InvoiceId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "DueDate",
+              "displayName": "DueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "LineItems",
+              "displayName": "LineItems",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VATRate",
+              "displayName": "VATRate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "VATAmount",
+              "displayName": "VATAmount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Draft",
+                  "value": "Draft"
+                },
+                {
+                  "name": "Issued",
+                  "value": "Issued"
+                },
+                {
+                  "name": "Paid",
+                  "value": "Paid"
+                },
+                {
+                  "name": "Overdue",
+                  "value": "Overdue"
+                },
+                {
+                  "name": "Cancelled",
+                  "value": "Cancelled"
+                },
+                {
+                  "name": "Invalid",
+                  "value": "Invalid"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "OrderId",
+              "displayName": "OrderId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.2,
+      "position": [
+        1824,
+        208
+      ],
+      "id": "65a811e8-a9ba-4a67-9e79-dad8e736b382",
+      "name": "Update Invoices",
+      "retryOnFail": false,
+      "maxTries": 2,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "id"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "tbljWoX1j2qX03Gwl",
+          "mode": "id"
+        },
+        "triggerField": "Created",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "33f9914a-cca3-480a-9eeb-ca6b0b466e08",
+      "name": "Airtable Receipts Trigger",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "id"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "tbllohHshoSs7dvBj",
+          "mode": "id"
+        },
+        "triggerField": "Created",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        208
+      ],
+      "id": "c314a122-962c-4c38-9bdb-226824268d38",
+      "name": "Airtable Invoices Trigger",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "authentication": "airtableTokenApi",
+        "baseId": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "id"
+        },
+        "tableId": {
+          "__rl": true,
+          "value": "tblUoMsNA3QBfPVnt",
+          "mode": "id"
+        },
+        "triggerField": "Created",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.airtableTrigger",
+      "typeVersion": 1,
+      "position": [
+        -16,
+        448
+      ],
+      "id": "86c2ce48-c0c2-44c9-8b12-7af29bd9704f",
+      "name": "Airtable Tax Invoices",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Upload PDF": {
+      "main": [
+        [
+          {
+            "node": "Update Reciept",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending Invoices": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "HTML": {
+      "main": [
+        [
+          {
+            "node": "HTML to PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTML to PDF": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Pending Tax Invoices": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Pending Receipts": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTML",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Reciept": {
+      "main": [
+        [
+          {
+            "node": "Update Tax Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Tax Invoices": {
+      "main": [
+        [
+          {
+            "node": "Update Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Receipts Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pending Receipts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Invoices Trigger": {
+      "main": [
+        [
+          {
+            "node": "Pending Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable Tax Invoices": {
+      "main": [
+        [
+          {
+            "node": "Pending Tax Invoices",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "92026092-d4b3-4246-9e52-df0fe818ec85",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acf763597c509dc3bf8240459dbc6de11a0d51d6a3de4ce5f49224ae023e03d"
+  },
+  "nodeGroups": [],
+  "id": "fdzvhS28MfnLMoUm",
+  "tags": []
+}

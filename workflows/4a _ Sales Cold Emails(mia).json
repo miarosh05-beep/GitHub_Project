@@ -1,0 +1,293 @@
+{
+  "name": "4a : Sales Cold Emails",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 3
+            }
+          ]
+        }
+      },
+      "id": "3440fa5b-1a7a-4d1a-b2da-0e1e120f8eb4",
+      "name": "Every 3 Hours",
+      "position": [
+        816,
+        160
+      ],
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblcbPwPhEL8OnKcS",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblcbPwPhEL8OnKcS"
+        },
+        "filterByFormula": "Status='New'",
+        "returnAll": false,
+        "limit": 10,
+        "options": {}
+      },
+      "id": "2ab9f7ac-8372-430e-9ff8-f4269cfc1c40",
+      "name": "Search New Leads",
+      "position": [
+        1120,
+        160
+      ],
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "{{ 'Write a short, friendly cold sales email in Hebrew to a business lead named ' + $json.Name + ' (company: ' + ($json.Company || 'לא ידוע') + ') who is interested in: ' + ($json.Interest || 'מוצרי אלקטרוניקה') + '. We are AI Electronics, an Israeli electronics retailer. One clear call to action. Max 120 words. Return only the email body.' }}"
+      },
+      "id": "3d08acbd-8a2a-46e1-a117-24287bea1aac",
+      "name": "Write Cold Email",
+      "position": [
+        1424,
+        160
+      ],
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.5
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Search New Leads').item.json.Email }}",
+        "subject": "הצעה מיוחדת מ-AI Electronics",
+        "message": "={{ $json.text }}",
+        "options": {}
+      },
+      "id": "f91a3120-d454-460a-9294-a307ce8b6406",
+      "name": "Send Email",
+      "position": [
+        1792,
+        160
+      ],
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "webhookId": "b0033b40-e2c4-42ea-9d68-09eee650e7a3",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "zmB0VUM9ajv44762",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblcbPwPhEL8OnKcS",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblcbPwPhEL8OnKcS"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Status": "Contacted",
+            "id": "={{ $('Search New Leads').item.json.id }}"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Name",
+              "displayName": "Name",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Phone",
+              "displayName": "Phone",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "34e72d67-5db9-4eaf-9b5d-7c9acfa4666c",
+      "name": "Mark Contacted",
+      "position": [
+        2000,
+        160
+      ],
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "model": "gpt-5.5",
+        "options": {}
+      },
+      "id": "135cfb1c-6736-4195-b508-d90aee683a93",
+      "name": "Chat Model",
+      "position": [
+        1424,
+        384
+      ],
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "credentials": {
+        "openAiApi": {
+          "id": "KuaOqZDgPYR1mako",
+          "name": "OpenAI account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Every 3 Hours": {
+      "main": [
+        [
+          {
+            "node": "Search New Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search New Leads": {
+      "main": [
+        [
+          {
+            "node": "Write Cold Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Mark Contacted",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Write Cold Email": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Write Cold Email",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "e859324b-ffe1-422b-aa2f-6a30ea699894",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acf763597c509dc3bf8240459dbc6de11a0d51d6a3de4ce5f49224ae023e03d"
+  },
+  "nodeGroups": [],
+  "id": "1lAZHMSa1TDan3uK",
+  "tags": []
+}

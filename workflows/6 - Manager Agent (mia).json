@@ -1,0 +1,1265 @@
+{
+  "name": "6 - Manager Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "id": "928e0134-99a4-4698-9754-55dfb15adf1f",
+      "name": "Owner Message",
+      "position": [
+        432,
+        384
+      ],
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.1,
+      "webhookId": "a7a007c5-e158-4ab4-b672-ba5e3553b20b",
+      "credentials": {
+        "telegramApi": {
+          "id": "KMOJUQk61N8asL0f",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.message.chat.id }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "rightValue": "6219582523",
+              "id": "131b2f86-3564-486b-8d8a-7253b16717ed"
+            }
+          ],
+          "combinator": "and"
+        },
+        "looseTypeValidation": true,
+        "options": {}
+      },
+      "id": "4bcb7107-88ba-4ed3-b5b0-2207c248aec5",
+      "name": "Is Owner?",
+      "position": [
+        720,
+        384
+      ],
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "מצטער, הבוט הזה מיועד למנהל בלבד.",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f36b261c-bc53-4018-b0f9-c03b2d63c2be",
+      "name": "Deny",
+      "position": [
+        1440,
+        736
+      ],
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "webhookId": "f6ca8307-41db-4188-97ea-a795a1254702",
+      "credentials": {
+        "telegramApi": {
+          "id": "KMOJUQk61N8asL0f",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.message.text }}",
+        "options": {
+          "systemMessage": "You are the manager/analytics agent for AI Electronics (owner only). Use the tools to read data and answer with concrete numbers: revenue, earnings (revenue minus expenses), top products, overdue invoices, open tasks. You can create tasks. NEVER take irreversible actions without confirming. Answer in the owner's language."
+        }
+      },
+      "id": "e31e06e5-e74c-4135-adb2-ac02eea499ab",
+      "name": "Manager Agent",
+      "position": [
+        1408,
+        128
+      ],
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.7
+    },
+    {
+      "parameters": {
+        "model": "gpt-5.4",
+        "options": {}
+      },
+      "id": "82901b69-7939-4a2a-8371-0f499075ec50",
+      "name": "GLM Chat Model",
+      "position": [
+        1056,
+        368
+      ],
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "credentials": {
+        "openAiApi": {
+          "id": "KuaOqZDgPYR1mako",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.message.chat.id }}",
+        "contextWindowLength": 12
+      },
+      "id": "e0462023-8fce-4f1f-af69-2f6736205d71",
+      "name": "Chat Memory",
+      "position": [
+        1184,
+        368
+      ],
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search tasks by status/assignee.",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblh4PKwhr1gmBrTU",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblh4PKwhr1gmBrTU"
+        },
+        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', ``, 'string') }}",
+        "options": {}
+      },
+      "id": "0f40815a-3389-4253-80d7-d64c3339dee3",
+      "name": "search_tasks",
+      "position": [
+        1648,
+        368
+      ],
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create a task. Provide Title, and optionally DueDate and Priority.",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblh4PKwhr1gmBrTU",
+          "mode": "list",
+          "cachedResultName": "Tasks",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblh4PKwhr1gmBrTU"
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Title",
+              "displayName": "Title",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "TaskId",
+              "displayName": "TaskId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Description",
+              "displayName": "Description",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ProjectId",
+              "displayName": "ProjectId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AssignedTo",
+              "displayName": "AssignedTo",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DueDate",
+              "displayName": "DueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Priority",
+              "displayName": "Priority",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "low",
+                  "value": "low"
+                },
+                {
+                  "name": "medium",
+                  "value": "medium"
+                },
+                {
+                  "name": "high",
+                  "value": "high"
+                },
+                {
+                  "name": "urgent",
+                  "value": "urgent"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "118e40df-cfbe-4e7e-b1b8-1ade37764667",
+      "name": "create_task",
+      "position": [
+        2016,
+        368
+      ],
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9d821b11-f5ed-47db-a600-6c6d619a30f9",
+      "name": "Embeddings",
+      "position": [
+        1392,
+        576
+      ],
+      "type": "@n8n/n8n-nodes-langchain.embeddingsOpenAi",
+      "typeVersion": 1.2,
+      "credentials": {
+        "openAiApi": {
+          "id": "KuaOqZDgPYR1mako",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "retrieve-as-tool",
+        "toolName": "Policy",
+        "toolDescription": "Search company policies and business rules.",
+        "memoryKey": "miarosh-policy"
+      },
+      "id": "f5e89d58-1eab-4222-81d5-e235fcfc9725",
+      "name": "Policies Knowledge",
+      "position": [
+        1312,
+        368
+      ],
+      "type": "@n8n/n8n-nodes-langchain.vectorStoreInMemory",
+      "typeVersion": 1.1
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Owner Message').item.json.message.chat.id }}",
+        "text": "={{ $json.output }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "f6eda880-5c3f-4470-ab54-a3a634a8c58e",
+      "name": "Send Answer",
+      "position": [
+        1984,
+        128
+      ],
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "webhookId": "c11b917a-cdd6-48e3-a9cb-1d89515c7991",
+      "credentials": {
+        "telegramApi": {
+          "id": "KMOJUQk61N8asL0f",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Search invoices. Returns records you can total for revenue/outstanding analysis.\nSearch invoice records. Available tables: \n- Invoices (regular invoices)\n- TaxInvoices (tax invoices with VAT breakdown)\n- Receipts (payment receipts)\nUse for revenue analysis, outstanding payments, and financial reporting.",
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Table', ``, 'string') }}",
+          "mode": "id"
+        },
+        "filterByFormula": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Filter_By_Formula', ``, 'string') }}",
+        "returnAll": false,
+        "limit": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Limit', ``, 'number') }}",
+        "options": {}
+      },
+      "id": "a278de2c-4f76-4ba0-a633-23e22d43c3ba",
+      "name": "search_invoices/tax/reciepts",
+      "position": [
+        1792,
+        368
+      ],
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.1,
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "create an Invoice",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbllohHshoSs7dvBj",
+          "mode": "list",
+          "cachedResultName": "Invoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbllohHshoSs7dvBj"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "InvoiceNumber": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('InvoiceNumber', ``, 'string') }}",
+            "VatAmount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('VatAmount', ``, 'number') }}",
+            "Total": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Total', ``, 'number') }}",
+            "Status": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Status', ``, 'string') }}",
+            "PdfUrl": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('PdfUrl', ``, 'string') }}",
+            "DueDate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DueDate', ``, 'string') }}",
+            "IssueDate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IssueDate', ``, 'string') }}",
+            "CustomerName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerName', ``, 'string') }}",
+            "DocNumber": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DocNumber', ``, 'number') }}",
+            "Created": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Created', ``, 'string') }}",
+            "LineItems": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('LineItems', ``, 'string') }}",
+            "Subtotal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subtotal', ``, 'number') }}",
+            "VATRate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('VATRate', ``, 'number') }}",
+            "OrderId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('OrderId', ``, 'string') }}",
+            "CustomerId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerId', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "InvoiceNumber",
+              "displayName": "InvoiceNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "VatAmount",
+              "displayName": "VatAmount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PdfUrl",
+              "displayName": "PdfUrl",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DueDate",
+              "displayName": "DueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "LineItems",
+              "displayName": "LineItems",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "VATRate",
+              "displayName": "VATRate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "OrderId",
+              "displayName": "OrderId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        368
+      ],
+      "id": "c5452865-e717-4782-8003-46f88a793da0",
+      "name": "create invoice",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create a tax innvoice",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tblUoMsNA3QBfPVnt",
+          "mode": "list",
+          "cachedResultName": "TaxInvoices",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tblUoMsNA3QBfPVnt"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "DocNumber": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DocNumber', ``, 'number') }}",
+            "Subtotal": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Subtotal', ``, 'number') }}",
+            "VATRate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('VATRate', ``, 'number') }}",
+            "VATAmount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('VATAmount', ``, 'number') }}",
+            "Total": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Total', ``, 'number') }}",
+            "TaxInvoiceId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('TaxInvoiceId', ``, 'string') }}",
+            "CustomerId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerId', ``, 'string') }}",
+            "CustomerName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerName', ``, 'string') }}",
+            "CustomerBusinessNumber": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerBusinessNumber', ``, 'string') }}",
+            "IssueDate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IssueDate', ``, 'string') }}",
+            "LineItems": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('LineItems', ``, 'string') }}",
+            "ValidationError": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ValidationError', ``, 'string') }}",
+            "Created": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Created', ``, 'string') }}",
+            "Status": "draft"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "TaxInvoiceId",
+              "displayName": "TaxInvoiceId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerBusinessNumber",
+              "displayName": "CustomerBusinessNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "LineItems",
+              "displayName": "LineItems",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Subtotal",
+              "displayName": "Subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "VATRate",
+              "displayName": "VATRate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "VATAmount",
+              "displayName": "VATAmount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Total",
+              "displayName": "Total",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "draft",
+                  "value": "draft"
+                },
+                {
+                  "name": "sent",
+                  "value": "sent"
+                },
+                {
+                  "name": "paid",
+                  "value": "paid"
+                },
+                {
+                  "name": "canceled",
+                  "value": "canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        2304,
+        368
+      ],
+      "id": "702b9bf1-61ca-4995-8bef-72cc68f0ef7c",
+      "name": "create Tax_Invoice",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Create a Receipt",
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "app2LLAoidm6aNqTw",
+          "mode": "list",
+          "cachedResultName": "פרויקט גמר 2026",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbljWoX1j2qX03Gwl",
+          "mode": "list",
+          "cachedResultName": "Receipts",
+          "cachedResultUrl": "https://airtable.com/app2LLAoidm6aNqTw/tbljWoX1j2qX03Gwl"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "ReceiptId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('ReceiptId', ``, 'string') }}",
+            "CustomerId": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerId', ``, 'string') }}",
+            "DocNumber": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('DocNumber', ``, 'number') }}",
+            "CustomerName": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('CustomerName', ``, 'string') }}",
+            "IssueDate": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('IssueDate', ``, 'string') }}",
+            "Amount": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Amount', ``, 'number') }}",
+            "PaymentMethod": "={{ $fromAI('PaymentMethod', 'Payment method used. One of: cash, credit_card, bank_transfer, check, bit') }}",
+            "RelatedInvoice": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('RelatedInvoice', ``, 'string') }}",
+            "Status": "={{ $fromAI('Status', 'Status of the receipt. One of: draft, issued, canceled') }}",
+            "Created": "={{ /*n8n-auto-generated-fromAI-override*/ $fromAI('Created', ``, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "ReceiptId",
+              "displayName": "ReceiptId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "DocNumber",
+              "displayName": "DocNumber",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerId",
+              "displayName": "CustomerId",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "CustomerName",
+              "displayName": "CustomerName",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "IssueDate",
+              "displayName": "IssueDate",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Amount",
+              "displayName": "Amount",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "PaymentMethod",
+              "displayName": "PaymentMethod",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "cash",
+                  "value": "cash"
+                },
+                {
+                  "name": "credit_card",
+                  "value": "credit_card"
+                },
+                {
+                  "name": "bank_transfer",
+                  "value": "bank_transfer"
+                },
+                {
+                  "name": "check",
+                  "value": "check"
+                },
+                {
+                  "name": "bit",
+                  "value": "bit"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "RelatedInvoice",
+              "displayName": "RelatedInvoice",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Status",
+              "displayName": "Status",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "draft",
+                  "value": "draft"
+                },
+                {
+                  "name": "issued",
+                  "value": "issued"
+                },
+                {
+                  "name": "canceled",
+                  "value": "canceled"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "ValidationError",
+              "displayName": "ValidationError",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": true
+            },
+            {
+              "id": "Created",
+              "displayName": "Created",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtableTool",
+      "typeVersion": 2.2,
+      "position": [
+        2448,
+        368
+      ],
+      "id": "e6196235-a780-4ab1-9b00-e33d6d88f3af",
+      "name": "Create a Receipt",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "aD83Nsq4YrnYeOnc",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Chat Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Embeddings": {
+      "ai_embedding": [
+        [
+          {
+            "node": "Policies Knowledge",
+            "type": "ai_embedding",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GLM Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Owner?": {
+      "main": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Deny",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manager Agent": {
+      "main": [
+        [
+          {
+            "node": "Send Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Owner Message": {
+      "main": [
+        [
+          {
+            "node": "Is Owner?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Policies Knowledge": {
+      "ai_tool": [
+        []
+      ]
+    },
+    "create_task": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_tasks": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "search_invoices/tax/reciepts": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create invoice": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "create Tax_Invoice": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a Receipt": {
+      "ai_tool": [
+        [
+          {
+            "node": "Manager Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "840e742c-07de-4a83-9757-be20068d43bc",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "9acf763597c509dc3bf8240459dbc6de11a0d51d6a3de4ce5f49224ae023e03d"
+  },
+  "nodeGroups": [],
+  "id": "pVHP1Y2ElXXqMn2D",
+  "tags": []
+}
